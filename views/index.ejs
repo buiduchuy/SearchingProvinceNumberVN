@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách biển số</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <select id="cityDropdown" class="search-select">
+      <option value="">Chọn tỉnh/thành phố...</option>
+    </select>
+    <!-- Thêm đoạn này vào body, sau thẻ select -->
+    <div class="result-box">
+      <p>
+        Biển số xe:
+        <span id="plateNumber" class="plate">-- Chưa chọn tỉnh --</span>
+      </p>
+    </div>
+
+    <!-- Add loading state -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      Đang tải dữ liệu...
+    </div>
+    <!-- Update the script section -->
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        const loading = document.getElementById("loading");
+        const dropdown = document.getElementById("cityDropdown");
+
+        try {
+          loading.style.display = "block";
+          const response = await fetch("/api/cities");
+          const cities = await response.json();
+
+          cities.forEach((city) => {
+            const option = new Option(city.city, city.city);
+            dropdown.add(option);
+          });
+        } catch (error) {
+          console.error("Lỗi tải dữ liệu:", error);
+        } finally {
+          loading.style.display = "none";
+        }
+
+        dropdown.addEventListener("change", async function () {
+          if (this.value) {
+            try {
+              loading.style.display = "block";
+              const response = await fetch(
+                `/api/plate/${encodeURIComponent(this.value)}`
+              );
+              const data = await response.json();
+              document.getElementById("plateNumber").textContent =
+                data.plate_no || "Chưa cập nhật";
+            } catch (error) {
+              console.error("Lỗi tìm biển số:", error);
+            } finally {
+              loading.style.display = "none";
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
